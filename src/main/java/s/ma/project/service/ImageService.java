@@ -1,40 +1,39 @@
 package s.ma.project.service;
 
-
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import s.ma.project.model.ImageFile;
 import s.ma.project.repository.ImageRepository;
+
+import java.io.File;
+import java.io.IOException;
 
 @Service
 public class ImageService {
 
-    @Autowired
-    private ImageRepository imageRepository;
+    private final ImageRepository imageRepository;
 
-    private final String uploadDir = "uploads/";
+    // Flask uygulamasının beklediği tam dosya yolu
+    private static final String FLASK_UPLOAD_PATH = "/Users/ataberkkabasakal/Desktop/BİTİRME/devSımaAı/uploads/input.jpg";
 
-    public void saveImage(MultipartFile file) {
-        try {
-            // Dosyayı diske kaydet
-            Path filePath = Paths.get(uploadDir + file.getOriginalFilename());
-            Files.createDirectories(filePath.getParent());
-            Files.write(filePath, file.getBytes());
+    public ImageService(ImageRepository imageRepository) {
+        this.imageRepository = imageRepository;
+    }
 
-            // Veritabanına kaydet
-            ImageFile imageFile = new ImageFile();
-            imageFile.setFileName(file.getOriginalFilename());
-            imageFile.setFilePath(filePath.toString());
-            imageRepository.save(imageFile);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
-        }
+    /**
+     * Yüklenen dosyayı Flask'in beklediği konuma "input.jpg" olarak yazar
+     * ve veritabanına kaydeder.
+     */
+    public void saveImage(MultipartFile file) throws IOException {
+        // Flask için gerekli input.jpg dosyasını oluştur
+        File flaskFile = new File(FLASK_UPLOAD_PATH);
+        flaskFile.getParentFile().mkdirs();
+        file.transferTo(flaskFile);
+
+        // İsteğe bağlı: veritabanına kayıt
+        ImageFile imageFile = new ImageFile();
+        imageFile.setFileName("input.jpg");
+        imageFile.setFilePath(FLASK_UPLOAD_PATH);
+        imageRepository.save(imageFile);
     }
 }
