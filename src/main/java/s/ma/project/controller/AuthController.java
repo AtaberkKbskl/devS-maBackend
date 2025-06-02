@@ -1,43 +1,29 @@
 package s.ma.project.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import s.ma.project.model.User;
-import s.ma.project.repository.UserRepository;
+import s.ma.project.service.UserService;
 
-@CrossOrigin(origins = "http://localhost:5173")  // CORS Ayarları
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserService userService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/register")
     public String register(@RequestBody User user) {
-        // Şifreyi şifrele
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        try {
-            userRepository.save(user);  // Kullanıcıyı veritabanına kaydet
-        } catch (Exception e) {
-            return "Error during registration: " + e.getMessage();  // Hata durumunda geri dönen mesaj
-        }
+        userService.register(user);
         return "User registered successfully!";
     }
 
     @PostMapping("/login")
     public String login(@RequestBody User user) {
-        // Kullanıcıyı veritabanında ara
-        User foundUser = userRepository.findByUsername(user.getUsername());
-        if (foundUser != null && passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            return "Login successful!";
-        } else {
-            return "Invalid username or password!";
-        }
+        boolean success = userService.login(user.getUsername(), user.getPassword());
+        return success ? "Login successful!" : "Invalid username or password!";
     }
 }
