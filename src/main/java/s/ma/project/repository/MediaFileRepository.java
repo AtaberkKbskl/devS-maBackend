@@ -1,10 +1,11 @@
 package s.ma.project.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import s.ma.project.model.MediaFile;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import s.ma.project.model.MediaFile;
 
 public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
 
@@ -20,4 +21,6 @@ public interface MediaFileRepository extends JpaRepository<MediaFile, Long> {
     List<MediaFile> findAllByStatusAndProcessedTimeBetween(
         String status, LocalDateTime start, LocalDateTime end
     );
+    List<MediaFile> findByMediaTypeAndStatus(String mediaType, String status);
+
 }
